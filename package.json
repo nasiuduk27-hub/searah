@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "workspaces": ["web", "api"],
+  "scripts": {
+    "dev:web": "npm --workspace web run dev",
+    "dev:api": "npm --workspace api run start:dev",
+    "build": "npm --workspace web run build && npm --workspace api run build"
+  }
+}
