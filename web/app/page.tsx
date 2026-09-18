@@ -13,6 +13,7 @@ const LINKS = [
   ['/kendaraan', 'Verifikasi kendaraan'],
   ['/darurat', 'Darurat + SOS'],
   ['/kantor', 'Email kantor'],
+  ['/personal', 'Kenal lebih jauh'],
 ];
 export default function Home() {
   return (
