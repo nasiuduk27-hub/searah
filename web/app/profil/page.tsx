@@ -24,6 +24,7 @@ export default function Profil() {
           ? 'Badge: Terverifikasi ✓'
           : `Status: ${me.verification_status ?? '-'}`}
       </p>
+      {me.office_email_verified && <p>Badge: Email kantor ✓ ({me.office_email})</p>}
     </main>
   );
 }

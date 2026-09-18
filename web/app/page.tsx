@@ -12,6 +12,7 @@ const LINKS = [
   ['/carpool', 'Carpool'],
   ['/kendaraan', 'Verifikasi kendaraan'],
   ['/darurat', 'Darurat + SOS'],
+  ['/kantor', 'Email kantor'],
 ];
 export default function Home() {
   return (

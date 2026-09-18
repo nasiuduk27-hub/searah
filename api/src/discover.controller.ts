@@ -36,7 +36,7 @@ export class DiscoverController {
       `SELECT t.user_id, t.destination_type, t.moda,
         ST_Y(t.public_geom::geometry) AS lat, ST_X(t.public_geom::geometry) AS lng,
         ST_Distance(t.public_geom, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography) AS distance_m,
-        u.verification_status
+        u.verification_status, u.office_email_verified AS kantor_terverifikasi
        FROM trip_points t
        JOIN users u ON u.id = t.user_id
        WHERE t.user_id <> $3

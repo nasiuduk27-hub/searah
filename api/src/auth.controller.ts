@@ -77,7 +77,7 @@ export class AuthController {
   async me(@Req() req: any) {
     const id = authUserId(req);
     const { rows } = await pool.query(
-      `SELECT id, phone, phone_verified, name, verification_status, trust_level FROM users WHERE id = $1`,
+      `SELECT id, phone, phone_verified, name, verification_status, trust_level, office_email, office_email_verified FROM users WHERE id = $1`,
       [id],
     );
     return rows[0] ?? null;
