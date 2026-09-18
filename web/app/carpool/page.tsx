@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 
 export default function Carpool() {
-  const [form, setForm] = useState({ origin_lat: '', origin_lng: '', dest_lat: '', dest_lng: '', moda: 'mobil', seats: '3', has_spare_helmet: false });
+  const [form, setForm] = useState({ origin_lat: '', origin_lng: '', dest_lat: '', dest_lng: '', moda: 'mobil', seats: '3', depart: '', has_spare_helmet: false });
   const [offers, setOffers] = useState<any[]>([]);
   const [incoming, setIncoming] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
@@ -13,6 +13,15 @@ export default function Carpool() {
     api('/carpool/offers').then(setOffers).catch(() => {});
     api('/carpool/requests/incoming').then(setIncoming).catch(() => {});
     api('/carpool/sessions/me').then(setSessions).catch(() => {});
+    // Prefill jam berangkat hari ini dari /jadwal.
+    api('/schedule/me').then((r: any[]) => {
+      const today = new Date().getDay();
+      const hit = r.find((x) => x.day_of_week === today);
+      if (hit && !form.depart) {
+        const d = new Date();
+        setForm((f) => ({ ...f, depart: `${d.toISOString().slice(0, 10)}T${hit.depart_time.slice(0, 5)}` }));
+      }
+    }).catch(() => {});
   }
   useEffect(load, []);
 
@@ -25,6 +34,7 @@ export default function Carpool() {
           origin_lat: Number(form.origin_lat), origin_lng: Number(form.origin_lng),
           dest_lat: Number(form.dest_lat), dest_lng: Number(form.dest_lng),
           destination_type: 'kantor', moda: form.moda, seats: Number(form.seats),
+          depart_time: form.depart ? new Date(form.depart).toISOString() : undefined,
           has_spare_helmet: form.moda === 'motor' ? form.has_spare_helmet : undefined,
         }),
       });
@@ -52,6 +62,7 @@ export default function Carpool() {
             <option value="mobil">Mobil</option><option value="motor">Motor</option>
           </select>
           <input placeholder="Kursi" type="number" min={1} max={7} value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })} />
+          <input type="datetime-local" value={form.depart} onChange={(e) => setForm({ ...form, depart: e.target.value })} title="Jam berangkat (otomatis dari jadwal)" />
         </div>
         {form.moda === 'motor' && (
           <label><input type="checkbox" checked={form.has_spare_helmet} onChange={(e) => setForm({ ...form, has_spare_helmet: e.target.checked })} /> Punya helm cadangan untuk penumpang</label>

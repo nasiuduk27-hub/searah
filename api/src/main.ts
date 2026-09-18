@@ -15,6 +15,7 @@ import { CarpoolController, ShareController } from './carpool.controller';
 import { OfficeController } from './office.controller';
 import { PersonalController } from './personal.controller';
 import { GamifikasiController } from './gamifikasi.controller';
+import { ScheduleController } from './schedule.controller';
 import { VehiclesController } from './vehicles.controller';
 
 @Controller()
@@ -25,7 +26,7 @@ class AppController {
   }
 }
 
-@Module({ controllers: [AppController, AuthController, VerificationsController, RoutesController, DiscoverController, CommunitiesController, SafetyController, RatingsController, DmController, CarpoolController, ShareController, OfficeController, PersonalController, GamifikasiController, VehiclesController] })
+@Module({ controllers: [AppController, AuthController, VerificationsController, RoutesController, DiscoverController, CommunitiesController, SafetyController, RatingsController, DmController, CarpoolController, ShareController, OfficeController, PersonalController, GamifikasiController, ScheduleController, VehiclesController] })
 class AppModule {}
 
 async function bootstrap() {
