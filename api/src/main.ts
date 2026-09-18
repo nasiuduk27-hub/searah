@@ -6,6 +6,7 @@ import { NestFactory } from '@nestjs/core';
 import { AuthController } from './auth.controller';
 import { VerificationsController } from './verifications.controller';
 import { RoutesController } from './routes.controller';
+import { DiscoverController } from './discover.controller';
 
 @Controller()
 class AppController {
@@ -15,7 +16,7 @@ class AppController {
   }
 }
 
-@Module({ controllers: [AppController, AuthController, VerificationsController, RoutesController] })
+@Module({ controllers: [AppController, AuthController, VerificationsController, RoutesController, DiscoverController] })
 class AppModule {}
 
 async function bootstrap() {
