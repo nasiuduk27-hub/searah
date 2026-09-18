@@ -107,4 +107,61 @@ export class DiscoverController {
       })
       .filter((r: any) => r.bearing_diff <= 45);
   }
+
+  // v3 = v2 + estimasi detour murah di PostGIS (PRD 5.1.1 step 4 versi gratis):
+  // detour = D(kantor→jemput) + D(jemput→rumah) − D(kantor→rumah), difilter batas
+  // toleransi driver (max_detour_minutes). Asumsi 333 m/menit (±20 km/jam kota).
+  // ponytail: heuristik jarak lurus; ganti Directions API bila kunci+budget siap.
+  @Get('/v3')
+  async discoverV3(
+    @Req() req: any,
+    @Query('home_lat') home_lat: string,
+    @Query('home_lng') home_lng: string,
+    @Query('office_lat') office_lat: string,
+    @Query('office_lng') office_lng: string,
+    @Query('moda') moda: string,
+    @Query('radius_m') radius_m: string,
+  ) {
+    const me = authUserId(req);
+    const hLat = Number(home_lat), hLng = Number(home_lng);
+    const oLat = Number(office_lat), oLng = Number(office_lng);
+    const radius = Math.min(Number(radius_m ?? 2000) || 2000, 5000);
+    if ([hLat, hLng, oLat, oLng].some((v) => !isFinite(v))) throw new ForbiddenException('koordinat rute saya wajib');
+    const myBearing = bearing(hLat, hLng, oLat, oLng);
+
+    const { rows } = await pool.query(
+      `WITH pairs AS (
+         SELECT h.user_id, h.moda, h.max_detour_minutes, h.public_geom AS home_pub,
+           ST_MakeLine(o.internal_geom::geometry, h.internal_geom::geometry)::geography AS line,
+           degrees(ST_Azimuth(o.internal_geom::geometry, h.internal_geom::geometry)) AS cbearing,
+           ST_Distance(o.internal_geom, h.internal_geom) AS direct_m,
+           ST_Distance(o.internal_geom, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography)
+             + ST_Distance(ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, h.internal_geom) AS via_m
+         FROM trip_points h JOIN trip_points o ON o.user_id = h.user_id
+         WHERE h.destination_type = 'rumah' AND o.destination_type IN ('kantor','titik_transit')
+           AND h.user_id <> $3 AND ($4 = '' OR h.moda = $4)
+           AND ST_DWithin(h.internal_geom, ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, $5)
+       )
+       SELECT p.user_id, p.moda,
+         ST_Y(p.home_pub::geometry) AS lat, ST_X(p.home_pub::geometry) AS lng,
+         ST_Distance(ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, p.line) AS corridor_m,
+         (p.via_m - p.direct_m) / 333 AS detour_min,
+         p.cbearing, u.verification_status, u.office_email_verified AS kantor_terverifikasi
+       FROM pairs p JOIN users u ON u.id = p.user_id
+       WHERE ST_Within(ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography, ST_Buffer(p.line, 500))
+         AND (p.via_m - p.direct_m) / 333 <= p.max_detour_minutes
+         AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = $3 AND b.blocked_id = p.user_id) OR (b.blocker_id = p.user_id AND b.blocked_id = $3))
+       ORDER BY detour_min ASC LIMIT 50`,
+      [hLng, hLat, me, moda ?? '', radius],
+    );
+
+    return rows
+      .map((r: any) => {
+        let diff = Math.abs(Number(r.cbearing) - myBearing) % 360;
+        if (diff > 180) diff = 360 - diff;
+        const { cbearing, ...rest } = r;
+        return { ...rest, lat: Number(r.lat), lng: Number(r.lng), corridor_m: Math.round(Number(r.corridor_m)), detour_min: Math.round(Number(r.detour_min) * 10) / 10, bearing_diff: Math.round(diff) };
+      })
+      .filter((r: any) => r.bearing_diff <= 45);
+  }
 }

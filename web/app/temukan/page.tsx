@@ -7,7 +7,7 @@ export default function Temukan() {
   const [home, setHome] = useState('');
   const [office, setOffice] = useState('');
   const [hasil, setHasil] = useState<any[]>([]);
-  const [koridor, setKoridor] = useState(true);
+  const [mode, setMode] = useState('v3');
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
@@ -25,8 +25,8 @@ export default function Temukan() {
         office_lat: String(o.lat), office_lng: String(o.lng),
         moda: h.moda, radius_m: '2000',
       });
-      setHasil(await api(`/discover${koridor ? '/v2' : ''}?${q}`));
-      setMsg(koridor ? 'Mode koridor: jemputmu dalam 500m rute mereka. Titik publik saja.' : 'Hanya titik publik (area ±300-500m), bukan lokasi presisi.');
+      setHasil(await api(`/discover${mode === 'v1' ? '' : `/${mode}`}?${q}`));
+      setMsg(mode === 'v3' ? 'Koridor 500m + detour dalam toleransi driver. Titik publik saja.' : mode === 'v2' ? 'Mode koridor: jemputmu dalam 500m rute mereka. Titik publik saja.' : 'Hanya titik publik (area ±300-500m), bukan lokasi presisi.');
     } catch (err: any) {
       setMsg(err.message);
     }
@@ -44,13 +44,17 @@ export default function Temukan() {
           <option value="">— Kantor / transit saya —</option>
           {routes.map((r) => <option key={r.id} value={r.id}>{r.destination_type} · {r.moda}</option>)}
         </select>
-        <label><input type="checkbox" checked={koridor} onChange={(e) => setKoridor(e.target.checked)} /> Mode koridor (≤500m dari rute)</label>
+        <select value={mode} onChange={(e) => setMode(e.target.value)}>
+          <option value="v1">Radius + bearing</option>
+          <option value="v2">Koridor 500m</option>
+          <option value="v3">Koridor + detour</option>
+        </select>
         <button type="submit">Cari (bearing ≤45°)</button>
       </form>
       <p>{msg}</p>
       <ul>
         {hasil.map((h, i) => (
-          <li key={i}>Sekitar area ({h.lat.toFixed(3)},{h.lng.toFixed(3)}) · {h.corridor_m != null ? `${h.corridor_m}m dari rute` : `${h.distance_m}m`} · selisih arah {h.bearing_diff}° {h.verification_status === 'verified' ? '· Terverifikasi ✓' : ''}{h.kantor_terverifikasi ? ' · Kantor ✓' : ''}</li>
+          <li key={i}>Sekitar area ({h.lat.toFixed(3)},{h.lng.toFixed(3)}) · {h.corridor_m != null ? `${h.corridor_m}m dari rute` : `${h.distance_m}m`}{h.detour_min != null ? ` · +${h.detour_min} mnt` : ''} · selisih arah {h.bearing_diff}° {h.verification_status === 'verified' ? '· Terverifikasi ✓' : ''}{h.kantor_terverifikasi ? ' · Kantor ✓' : ''}</li>
         ))}
       </ul>
     </main>
