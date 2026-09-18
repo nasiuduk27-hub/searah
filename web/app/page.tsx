@@ -17,6 +17,7 @@ const LINKS = [
   ['/streak', 'Streak saya'],
   ['/jadwal', 'Jadwal kerja'],
   ['/transit', 'Jadwal transit'],
+  ['/weekend', 'Weekend bareng'],
 ];
 export default function Home() {
   return (
