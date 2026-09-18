@@ -9,6 +9,7 @@ const LINKS = [
   ['/aman', 'Lapor & blokir'],
   ['/rating', 'Rating carpool'],
   ['/pesan', 'Pesan personal'],
+  ['/carpool', 'Carpool'],
 ];
 export default function Home() {
   return (

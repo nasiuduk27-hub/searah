@@ -11,6 +11,7 @@ import { CommunitiesController } from './communities.controller';
 import { SafetyController } from './safety.controller';
 import { RatingsController } from './ratings.controller';
 import { DmController } from './dm.controller';
+import { CarpoolController } from './carpool.controller';
 
 @Controller()
 class AppController {
@@ -20,7 +21,7 @@ class AppController {
   }
 }
 
-@Module({ controllers: [AppController, AuthController, VerificationsController, RoutesController, DiscoverController, CommunitiesController, SafetyController, RatingsController, DmController] })
+@Module({ controllers: [AppController, AuthController, VerificationsController, RoutesController, DiscoverController, CommunitiesController, SafetyController, RatingsController, DmController, CarpoolController] })
 class AppModule {}
 
 async function bootstrap() {
