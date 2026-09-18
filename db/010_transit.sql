@@ -15,6 +15,10 @@ CREATE TABLE transit_departures (
   depart_time TIME NOT NULL
 );
 CREATE INDEX transit_dep_idx ON transit_departures (stop_id, day_type, depart_time);
+DO $$ BEGIN
+  ALTER TABLE transit_departures ADD CONSTRAINT transit_dep_unique UNIQUE (stop_id, day_type, depart_time);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 INSERT INTO transit_stops (code, name, mode, corridor) VALUES
   ('BKS', 'Bekasi', 'krl', 'Bekasi-Sudirman'),
@@ -28,4 +32,5 @@ ON CONFLICT (code) DO NOTHING;
 -- Sampel weekday pagi (WIB). Sesuaikan manual dari jadwal resmi.
 INSERT INTO transit_departures (stop_id, day_type, depart_time)
 SELECT id, 'weekday', t FROM transit_stops, (VALUES ('06:05'),('06:20'),('06:35'),('06:50'),('07:05'),('07:20'),('17:10'),('17:30'),('17:50'),('18:10')) AS v(t)
-WHERE code IN ('BKS','KRI','MRI','SUD','BSD1','SCBD1');
+WHERE code IN ('BKS','KRI','MRI','SUD','BSD1','SCBD1')
+ON CONFLICT ON CONSTRAINT transit_dep_unique DO NOTHING;

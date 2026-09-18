@@ -23,7 +23,7 @@ export default function Weekend() {
   async function post(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await api('/weekend', { method: 'POST', body: JSON.stringify({ ...form, max_people: Number(form.max_people) }) });
+      await api('/weekend', { method: 'POST', body: JSON.stringify({ ...form, max_people: Number(form.max_people), activity_time: new Date(form.activity_time).toISOString() }) });
       setMsg('Aktivitas terbit untuk sekomunitasmu.');
       load();
     } catch (e: any) { setMsg(e.message); }

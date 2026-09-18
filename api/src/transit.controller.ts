@@ -16,15 +16,18 @@ export class TransitController {
   @Get('/stops/:code/next')
   async next(@Param('code') code: string, @Query('limit') limit: string) {
     const n = Math.min(Number(limit ?? 5) || 5, 20);
-    const now = new Date();
-    const day = now.getDay();
-    const dayType = day === 0 || day === 6 ? 'weekend' : 'weekday';
+    // Waktu Jakarta dihitung di DB agar benar apapun TZ server.
     const { rows } = await pool.query(
-      `SELECT d.depart_time FROM transit_departures d JOIN transit_stops s ON s.id = d.stop_id
-       WHERE s.code = $1 AND d.day_type = $2 AND d.depart_time >= $3::time
+      `WITH now_jkt AS (SELECT (now() AT TIME ZONE 'Asia/Jakarta') AS t)
+       SELECT d.depart_time,
+         CASE WHEN EXTRACT(ISODOW FROM (SELECT t FROM now_jkt)) IN (6, 7) THEN 'weekend' ELSE 'weekday' END AS day_type
+       FROM transit_departures d JOIN transit_stops s ON s.id = d.stop_id
+       WHERE s.code = $1
+         AND d.day_type = (CASE WHEN EXTRACT(ISODOW FROM (SELECT t FROM now_jkt)) IN (6, 7) THEN 'weekend' ELSE 'weekday' END)
+         AND d.depart_time >= (SELECT t::time FROM now_jkt)
        ORDER BY d.depart_time ASC LIMIT ${n}`,
-      [code, dayType, now.toTimeString().slice(0, 8)],
+      [code],
     );
-    return { code, day_type: dayType, next: rows.map((r: any) => r.depart_time) };
+    return { code, day_type: rows[0]?.day_type ?? null, next: rows.map((r: any) => r.depart_time) };
   }
 }
