@@ -1,6 +1,10 @@
 import 'reflect-metadata';
+import 'dotenv/config';
+import { json } from 'express';
 import { Controller, Get, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { AuthController } from './auth.controller';
+import { VerificationsController } from './verifications.controller';
 
 @Controller()
 class AppController {
@@ -10,11 +14,13 @@ class AppController {
   }
 }
 
-@Module({ controllers: [AppController] })
+@Module({ controllers: [AppController, AuthController, VerificationsController] })
 class AppModule {}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors();
+  app.use(json({ limit: '10mb' }));
   await app.listen(process.env.PORT ?? 3001);
 }
 bootstrap();
