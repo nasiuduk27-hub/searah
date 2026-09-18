@@ -2,7 +2,11 @@ export const metadata = {
   title: "SEARAH — Teman Seperjalanan Kerja",
   description: "Temukan teman searah pulang-pergi kerja di Jabodetabek.",
   manifest: "/manifest.webmanifest",
+  themeColor: "#111111",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "SEARAH" },
 };
+
+export const viewport = { width: "device-width", initialScale: 1, themeColor: "#111111" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
