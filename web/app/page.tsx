@@ -14,6 +14,7 @@ const LINKS = [
   ['/darurat', 'Darurat + SOS'],
   ['/kantor', 'Email kantor'],
   ['/personal', 'Kenal lebih jauh'],
+  ['/streak', 'Streak saya'],
 ];
 export default function Home() {
   return (
