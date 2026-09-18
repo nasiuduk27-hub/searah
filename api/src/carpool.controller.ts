@@ -166,4 +166,63 @@ export class CarpoolController {
     );
     return { ok: true };
   }
+
+  @Patch('/sessions/:id/start')
+  async start(@Req() req: any, @Param('id') id: string) {
+    const me = authUserId(req);
+    const { rows } = await pool.query(`SELECT * FROM carpool_sessions WHERE id = $1`, [id]);
+    if (!rows[0] || rows[0].driver_id !== me) throw new ForbiddenException('hanya driver');
+    if (rows[0].status !== 'accepted') throw new ForbiddenException('sesi tidak dalam status accepted');
+    await pool.query(
+      `UPDATE carpool_sessions SET status = 'ongoing', started_at = now() WHERE id = $1`, [id],
+    );
+    return { ok: true };
+  }
+
+  // Link berbagi ke kontak darurat (tanpa login, kedaluwarsa 12 jam).
+  @Post('/sessions/:id/share')
+  async share(@Req() req: any, @Param('id') id: string) {
+    const me = authUserId(req);
+    const { rows } = await pool.query(`SELECT * FROM carpool_sessions WHERE id = $1`, [id]);
+    if (!rows[0] || (rows[0].driver_id !== me && rows[0].passenger_id !== me))
+      throw new ForbiddenException('bukan sesi kamu');
+    if (rows[0].status !== 'ongoing') throw new ForbiddenException('hanya sesi aktif');
+    const { rows: t } = await pool.query(
+      `INSERT INTO share_tokens (session_id) VALUES ($1) RETURNING token, expires_at`, [id],
+    );
+    return t[0];
+  }
+
+  @Post('/sessions/:id/ping')
+  async ping(@Req() req: any, @Param('id') id: string, @Body() b: { lat: number; lng: number }) {
+    const me = authUserId(req);
+    const { rows } = await pool.query(`SELECT * FROM carpool_sessions WHERE id = $1`, [id]);
+    if (!rows[0] || (rows[0].driver_id !== me && rows[0].passenger_id !== me))
+      throw new ForbiddenException('bukan sesi kamu');
+    if (rows[0].status !== 'ongoing') throw new ForbiddenException('hanya sesi aktif');
+    if (typeof b?.lat !== 'number' || typeof b?.lng !== 'number')
+      throw new ForbiddenException('lat/lng wajib angka');
+    await pool.query(
+      `INSERT INTO location_pings (session_id, user_id, geom) VALUES ($1, $2, ST_SetSRID(ST_MakePoint($3,$4),4326))`,
+      [id, me, b.lng, b.lat],
+    );
+    return { ok: true };
+  }
+}
+
+@Controller('/share')
+export class ShareController {
+  @Get('/:token/track')
+  async track(@Param('token') token: string) {
+    const { rows: t } = await pool.query(
+      `SELECT session_id FROM share_tokens WHERE token = $1 AND expires_at > now()`, [token],
+    );
+    if (!t[0]) throw new ForbiddenException('link tidak valid/kedaluwarsa');
+    const { rows } = await pool.query(
+      `SELECT ST_Y(geom::geometry) AS lat, ST_X(geom::geometry) AS lng, created_at
+       FROM location_pings WHERE session_id = $1 ORDER BY created_at DESC LIMIT 20`,
+      [t[0].session_id],
+    );
+    return rows.reverse();
+  }
 }

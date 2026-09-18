@@ -76,8 +76,28 @@ export default function Carpool() {
       ))}
       <h2>Sesi saya</h2>
       {sessions.map((s) => (
-        <div key={s.id}>{s.id.slice(0, 8)} · {s.status}
-          {s.status !== 'finished' && <button style={{ marginLeft: 8 }} onClick={async () => { await api(`/carpool/sessions/${s.id}/finish`, { method: 'PATCH' }); load(); }}>Selesai</button>}
+        <div key={s.id} style={{ border: s.status === 'ongoing' ? '2px solid #c00' : '1px solid #ddd', padding: 8, marginBottom: 8 }}>
+          {s.id.slice(0, 8)} · {s.status}
+          {s.status === 'accepted' && <button style={{ marginLeft: 8 }} onClick={async () => { await api(`/carpool/sessions/${s.id}/start`, { method: 'PATCH' }); load(); }}>Mulai</button>}
+          {s.status === 'ongoing' && (
+            <>
+              <a href="/darurat" style={{ marginLeft: 8, background: '#c00', color: '#fff', padding: '4px 12px', textDecoration: 'none' }}>SOS</a>
+              <button style={{ marginLeft: 4 }} onClick={async () => {
+                try {
+                  const t = await api(`/carpool/sessions/${s.id}/share`, { method: 'POST', body: '{}' });
+                  setMsg(`Link share (12 jam): ${location.origin}/lacak/${t.token} — kirim ke kontak darurat.`);
+                } catch (e: any) { setMsg(e.message); }
+              }}>Bagikan</button>
+              <button style={{ marginLeft: 4 }} onClick={async () => {
+                try {
+                  const pos = await new Promise<GeolocationPosition>((res, rej) => navigator.geolocation?.getCurrentPosition(res, rej));
+                  await api(`/carpool/sessions/${s.id}/ping`, { method: 'POST', body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude }) });
+                  setMsg('Lokasi terkirim. Web: biarkan tab aktif agar share jalan.');
+                } catch (e: any) { setMsg(e.message); }
+              }}>Kirim lokasi</button>
+            </>
+          )}
+          {(s.status === 'accepted' || s.status === 'ongoing') && <button style={{ marginLeft: 4 }} onClick={async () => { await api(`/carpool/sessions/${s.id}/finish`, { method: 'PATCH' }); load(); }}>Selesai</button>}
         </div>
       ))}
       <p>{msg}</p>

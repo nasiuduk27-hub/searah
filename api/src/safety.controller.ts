@@ -55,4 +55,44 @@ export class SafetyController {
     await pool.query(`DELETE FROM blocks WHERE blocker_id = $1 AND blocked_id = $2`, [me, id]);
     return { ok: true };
   }
+
+  @Get('/contacts')
+  async contacts(@Req() req: any) {
+    const me = authUserId(req);
+    const { rows } = await pool.query(
+      `SELECT id, name, phone FROM emergency_contacts WHERE user_id = $1 ORDER BY created_at ASC LIMIT 5`,
+      [me],
+    );
+    return rows;
+  }
+
+  @Post('/contacts')
+  async addContact(@Req() req: any, @Body() b: { name: string; phone: string }) {
+    const me = authUserId(req);
+    if (!b?.name || !b?.phone) throw new ForbiddenException('nama dan nomor wajib');
+    const { rows } = await pool.query(
+      `INSERT INTO emergency_contacts (user_id, name, phone) VALUES ($1, $2, $3) RETURNING id, name, phone`,
+      [me, b.name.slice(0, 100), b.phone.slice(0, 20)],
+    );
+    return rows[0];
+  }
+
+  @Delete('/contacts/:id')
+  async delContact(@Req() req: any, @Param('id') id: string) {
+    const me = authUserId(req);
+    await pool.query(`DELETE FROM emergency_contacts WHERE id = $1 AND user_id = $2`, [id, me]);
+    return { ok: true };
+  }
+
+  // ponytail: tanpa push otomatis dulu; event tercatat + instruksikan hubungi 110/112.
+  @Post('/sos')
+  async sos(@Req() req: any, @Body() b: { session_id?: string; lat?: number; lng?: number }) {
+    const me = authUserId(req);
+    const hasGeo = typeof b?.lat === 'number' && typeof b?.lng === 'number';
+    await pool.query(
+      `INSERT INTO sos_events (user_id, session_id, geom) VALUES ($1, $2, ${hasGeo ? 'ST_SetSRID(ST_MakePoint($3,$4),4326)' : 'NULL'})`,
+      hasGeo ? [me, b.session_id ?? null, b.lng, b.lat] : [me, b.session_id ?? null],
+    );
+    return { ok: true, call: ['110 (Polisi)', '112 (Darurat)', '118 (Ambulans)'] };
+  }
 }

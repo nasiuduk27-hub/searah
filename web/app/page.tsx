@@ -11,6 +11,7 @@ const LINKS = [
   ['/pesan', 'Pesan personal'],
   ['/carpool', 'Carpool'],
   ['/kendaraan', 'Verifikasi kendaraan'],
+  ['/darurat', 'Darurat + SOS'],
 ];
 export default function Home() {
   return (
