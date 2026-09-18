@@ -10,6 +10,7 @@ import { DiscoverController } from './discover.controller';
 import { CommunitiesController } from './communities.controller';
 import { SafetyController } from './safety.controller';
 import { RatingsController } from './ratings.controller';
+import { DmController } from './dm.controller';
 
 @Controller()
 class AppController {
@@ -19,7 +20,7 @@ class AppController {
   }
 }
 
-@Module({ controllers: [AppController, AuthController, VerificationsController, RoutesController, DiscoverController, CommunitiesController, SafetyController, RatingsController] })
+@Module({ controllers: [AppController, AuthController, VerificationsController, RoutesController, DiscoverController, CommunitiesController, SafetyController, RatingsController, DmController] })
 class AppModule {}
 
 async function bootstrap() {

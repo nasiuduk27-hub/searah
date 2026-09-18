@@ -8,6 +8,7 @@ const LINKS = [
   ['/komunitas', 'Komunitas + chat'],
   ['/aman', 'Lapor & blokir'],
   ['/rating', 'Rating carpool'],
+  ['/pesan', 'Pesan personal'],
 ];
 export default function Home() {
   return (
