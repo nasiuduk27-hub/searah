@@ -1,4 +1,14 @@
-// ponytail: halaman placeholder MVP, ganti dengan 6 layar wireframe saat bangun UI.
+// ponytail: nav MVP, ganti dengan 6 layar wireframe saat bangun UI final.
+const LINKS = [
+  ['/register', 'Daftar + OTP'],
+  ['/verifikasi', 'Verifikasi KTP/selfie'],
+  ['/profil', 'Profil + badge'],
+  ['/rute', 'Setup rute'],
+  ['/temukan', 'Temukan searah'],
+  ['/komunitas', 'Komunitas + chat'],
+  ['/aman', 'Lapor & blokir'],
+  ['/rating', 'Rating carpool'],
+];
 export default function Home() {
   return (
     <main style={{ padding: 24, maxWidth: 640, margin: "0 auto" }}>
@@ -9,9 +19,9 @@ export default function Home() {
         saling bantu.
       </p>
       <ul>
-        <li>MVP 1: registrasi + verifikasi KTP/selfie (review manual)</li>
-        <li>MVP 2: setup rute rumah–kantor + moda</li>
-        <li>MVP 3: komunitas rute + chat grup + report/block</li>
+        {LINKS.map(([href, label]) => (
+          <li key={href}><a href={href}>{label}</a></li>
+        ))}
       </ul>
     </main>
   );
