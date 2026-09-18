@@ -64,6 +64,7 @@ export class CarpoolController {
         ST_Y(o.origin_geom::geometry) AS o_lat, ST_X(o.origin_geom::geometry) AS o_lng,
         ST_Y(o.dest_geom::geometry) AS d_lat, ST_X(o.dest_geom::geometry) AS d_lng,
         u.name AS driver, (u.verification_status = 'verified') AS driver_terverifikasi,
+        (u.vehicle_status = 'verified') AS kendaraan_terverifikasi,
         (SELECT COUNT(*)::int FROM carpool_requests r WHERE r.offer_id = o.id AND r.status = 'accepted') AS taken
        FROM carpool_offers o JOIN users u ON u.id = o.driver_id
        WHERE o.status = 'open' AND o.driver_id <> $1

@@ -14,7 +14,7 @@ function encKey(): Buffer {
   return randomBytes(32);
 }
 
-async function saveEncrypted(dataB64: string, userId: string, docType: string): Promise<string> {
+export async function saveEncrypted(dataB64: string, userId: string, docType: string): Promise<string> {
   const raw = Buffer.from(dataB64.split(',').pop() ?? '', 'base64');
   if (raw.length === 0 || raw.length > 5 * 1024 * 1024) throw new ForbiddenException('file tidak valid / >5MB');
   const key = encKey();

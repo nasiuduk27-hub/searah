@@ -10,6 +10,7 @@ const LINKS = [
   ['/rating', 'Rating carpool'],
   ['/pesan', 'Pesan personal'],
   ['/carpool', 'Carpool'],
+  ['/kendaraan', 'Verifikasi kendaraan'],
 ];
 export default function Home() {
   return (

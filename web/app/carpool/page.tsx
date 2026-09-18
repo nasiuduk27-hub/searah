@@ -61,7 +61,7 @@ export default function Carpool() {
       <h2>Tawaran searah</h2>
       {offers.map((o) => (
         <div key={o.id} style={{ border: '1px solid #ddd', padding: 8, marginBottom: 8 }}>
-          <b>{o.driver}</b>{o.driver_terverifikasi ? ' ✓' : ''} · {o.moda} · sisa {o.seats_left} kursi
+          <b>{o.driver}</b>{o.driver_terverifikasi ? ' ✓' : ''}{o.kendaraan_terverifikasi ? ' · Kendaraan ✓' : ''} · {o.moda} · sisa {o.seats_left} kursi
           {o.moda === 'motor' && <span> · {o.has_spare_helmet ? 'Helm cadangan: Ya' : 'Penumpang wajib bawa helm sendiri'}</span>}
           <button style={{ marginLeft: 8 }} onClick={async () => { try { await api(`/carpool/offers/${o.id}/request`, { method: 'POST', body: '{}' }); setMsg('Request terkirim.'); } catch (e: any) { setMsg(e.message); } }}>Nebeng</button>
         </div>
